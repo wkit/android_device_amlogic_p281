@@ -1,0 +1,44 @@
+name: Build Firmware
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Java
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+
+    - name: Set up Android NDK
+      uses: actions/setup-ndk@v1
+
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Sync the repository
+      run: |
+        repo init -u https://github.com/TeamWin/android_bootable_recovery.git -b twrp-10
+        repo sync
+
+    - name: Use prebuilt kernel and dtb
+      run: |
+        cp device/amlogic/p281/prebuilt/kernel out/target/product/p281/kernel
+        cp device/amlogic/p281/prebuilt/dtb.img out/target/product/p281/dtb.img
+
+    - name: Build the image
+      run: |
+        . build/envsetup.sh
+        lunch p281-eng
+        make -j$(nproc) recoveryimage
