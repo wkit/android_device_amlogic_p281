@@ -49,7 +49,7 @@ jobs:
     # Step 6: Sync the TWRP repository
     - name: Sync TWRP repository
       run: |
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-10
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
         repo sync -j4
 
     # Step 7: Copy prebuilt kernel and dtb files
