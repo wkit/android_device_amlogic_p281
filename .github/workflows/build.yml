@@ -1,4 +1,4 @@
-name: Build Firmware
+name: Build TWRP Firmware
 
 on:
   push:
@@ -13,35 +13,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Java
-      uses: actions/setup-java@v2
-      with:
-        java-version: '11'
+    # Step 2: Install required dependencies
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget unzip
 
+    # Step 3: Install Android SDK
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        sdk-version: '30.0.3'
+
+    # Step 4: Install Android NDK manually (as `actions/setup-ndk` is unavailable)
     - name: Install Android NDK
       run: |
         wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
         unzip android-ndk-r21e-linux-x86_64.zip -d /opt
         export NDK=/opt/android-ndk-r21e
+        echo "NDK=$NDK" >> $GITHUB_ENV
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v2
-
-    - name: Sync the repository
+    # Step 5: Sync the repository (initialize and sync TWRP repo)
+    - name: Sync TWRP repository
       run: |
-        repo init -u https://github.com/TeamWin/android_bootable_recovery.git -b twrp-10
-        repo sync
+        repo init -u https://github.com/TeamWin/android_bootable_recovery.git -b twrp-12.1
+        repo sync -j4
 
-    - name: Use prebuilt kernel and dtb
+    # Step 6: Use prebuilt kernel and dtb files
+    - name: Copy prebuilt files
       run: |
         cp device/amlogic/p281/prebuilt/kernel out/target/product/p281/kernel
         cp device/amlogic/p281/prebuilt/dtb.img out/target/product/p281/dtb.img
 
-    - name: Build the image
+    # Step 7: Build the TWRP recovery image
+    - name: Build TWRP recovery image
       run: |
         . build/envsetup.sh
         lunch p281-eng
         make -j$(nproc) recoveryimage
+
+    # Step 8: Upload the built recovery image
+    - name: Upload recovery image
+      uses: actions/upload-artifact@v2
+      with:
+        name: recoveryimage
+        path: out/target/product/p281/recovery.img
