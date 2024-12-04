@@ -67,7 +67,7 @@ jobs:
 
     # Step 9: Upload the built recovery image
     - name: Upload recovery image
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: recoveryimage
         path: out/target/product/p281/recovery.img
