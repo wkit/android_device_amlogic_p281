@@ -48,4 +48,8 @@ jobs:
           lunch omni_h313-userdebug
           make -j$(nproc) recoveryimage
 
-      - name
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: built-firmware
+          path: out/target/product/h313/recovery.img
