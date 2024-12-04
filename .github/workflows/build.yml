@@ -3,10 +3,10 @@ name: Build Firmware
 on:
   push:
     branches:
-      - main
+      - eros_p2-userdebug-10-QP1A.191105.004-eng.chenza.20240613.193829-test-keys
   pull_request:
     branches:
-      - main
+      - eros_p2-userdebug-10-QP1A.191105.004-eng.chenza.20240613.193829-test-keys
 
 jobs:
   build:
