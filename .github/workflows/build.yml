@@ -21,15 +21,24 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip
+        sudo apt-get install -y wget unzip git curl build-essential
 
-    # Step 3: Install Android SDK
+    # Step 3: Install repo tool
+    - name: Install repo tool
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        export PATH=~/bin:$PATH
+        echo "PATH=$PATH" >> $GITHUB_ENV
+
+    # Step 4: Install Android SDK
     - name: Set up Android SDK
       uses: android-actions/setup-android@v2
       with:
         sdk-version: '30.0.3'
 
-    # Step 4: Install Android NDK manually (as `actions/setup-ndk` is unavailable)
+    # Step 5: Install Android NDK
     - name: Install Android NDK
       run: |
         wget https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
@@ -37,28 +46,28 @@ jobs:
         export NDK=/opt/android-ndk-r21e
         echo "NDK=$NDK" >> $GITHUB_ENV
 
-    # Step 5: Sync the repository (initialize and sync TWRP repo)
+    # Step 6: Sync the TWRP repository
     - name: Sync TWRP repository
       run: |
         repo init -u https://github.com/TeamWin/android_bootable_recovery.git -b twrp-12.1
         repo sync -j4
 
-    # Step 6: Use prebuilt kernel and dtb files
+    # Step 7: Copy prebuilt kernel and dtb files
     - name: Copy prebuilt files
       run: |
         cp device/amlogic/p281/prebuilt/kernel out/target/product/p281/kernel
         cp device/amlogic/p281/prebuilt/dtb.img out/target/product/p281/dtb.img
 
-    # Step 7: Build the TWRP recovery image
+    # Step 8: Build the TWRP recovery image
     - name: Build TWRP recovery image
       run: |
         . build/envsetup.sh
         lunch p281-eng
         make -j$(nproc) recoveryimage
 
-    # Step 8: Upload the built recovery image
+    # Step 9: Upload the built recovery image
     - name: Upload recovery image
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: recoveryimage
         path: out/target/product/p281/recovery.img
